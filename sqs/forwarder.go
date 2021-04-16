@@ -3,6 +3,7 @@ package sqs
 import (
 	"errors"
 	log "github.com/sirupsen/logrus"
+	"github.com/streadway/amqp"
 
 	"github.com/AirHelp/rabbit-amazon-forwarder/config"
 	"github.com/AirHelp/rabbit-amazon-forwarder/forwarder"
@@ -32,6 +33,7 @@ func CreateForwarder(entry config.AmazonEntry, sqsClient ...sqsiface.SQSAPI) for
 	} else {
 		client = sqs.New(session.Must(session.NewSession()))
 	}
+
 	forwarder := Forwarder{entry.Name, client, entry.Target}
 	log.WithField("forwarderName", forwarder.Name()).Info("Created forwarder")
 	return forwarder
@@ -43,13 +45,15 @@ func (f Forwarder) Name() string {
 }
 
 // Push pushes message to forwarding infrastructure
-func (f Forwarder) Push(message string) error {
-	if message == "" {
+func (f Forwarder) Push(message amqp.Delivery) error {
+	messageBody := string(message.Body)
+
+	if messageBody == "" {
 		return errors.New(forwarder.EmptyMessageError)
 	}
 	params := &sqs.SendMessageInput{
-		MessageBody: aws.String(message), // Required
-		QueueUrl:    aws.String(f.queue), // Required
+		MessageBody: aws.String(messageBody), // Required
+		QueueUrl:    aws.String(f.queue),     // Required
 	}
 
 	resp, err := f.sqsClient.SendMessage(params)

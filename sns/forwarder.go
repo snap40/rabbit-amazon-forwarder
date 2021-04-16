@@ -2,7 +2,9 @@ package sns
 
 import (
 	"errors"
+	"fmt"
 	log "github.com/sirupsen/logrus"
+	"github.com/streadway/amqp"
 
 	"github.com/AirHelp/rabbit-amazon-forwarder/config"
 	"github.com/AirHelp/rabbit-amazon-forwarder/forwarder"
@@ -43,13 +45,33 @@ func (f Forwarder) Name() string {
 }
 
 // Push pushes message to forwarding infrastructure
-func (f Forwarder) Push(message string) error {
-	if message == "" {
+func (f Forwarder) Push(d amqp.Delivery) error {
+	var messageBody string
+	if d.ContentType == "application/octet-stream" {
+		messageBody = string(forwarder.Base64Encode(d.Body))
+	} else {
+		messageBody = string(d.Body)
+	}
+
+	messageAttributes := make(map[string]*sns.MessageAttributeValue)
+	if len(d.Headers) > 0 {
+		for k, v := range d.Headers {
+			stringValue := fmt.Sprintf("%s", v)
+			messageAttributes[k] = &sns.MessageAttributeValue{}
+			messageAttributes[k].SetStringValue(stringValue)
+			messageAttributes[k].SetDataType("String")
+		}
+	}
+
+	if messageBody == "" {
 		return errors.New(forwarder.EmptyMessageError)
 	}
 	params := &sns.PublishInput{
-		Message:   aws.String(message),
+		Message:   aws.String(messageBody),
 		TargetArn: aws.String(f.topic),
+	}
+	if len(messageAttributes) > 0 {
+		params.MessageAttributes = messageAttributes
 	}
 
 	resp, err := f.snsClient.Publish(params)
