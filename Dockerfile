@@ -25,8 +25,6 @@ RUN adduser -D -g '' appuser
 
 WORKDIR /app
 
-ENV ENVIRONMENT="dev"
-
 RUN apk add --no-cache ca-certificates
 
 COPY --from=builder /go/src/github.com/AirHelp/rabbit-amazon-forwarder/forwarder /app/forwarder
