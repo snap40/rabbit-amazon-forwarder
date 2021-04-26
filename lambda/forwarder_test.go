@@ -2,6 +2,7 @@ package lambda
 
 import (
 	"errors"
+	"github.com/streadway/amqp"
 	"testing"
 
 	"github.com/AirHelp/rabbit-amazon-forwarder/config"
@@ -12,9 +13,9 @@ import (
 )
 
 const (
-	badRequest     = "Bad request"
-	handlerError   = "Handled"
-	unhandledError = "Unhandled"
+	badRequest     = "bad request"
+	handlerError   = "handled"
+	unhandledError = "unhandled"
 )
 
 func TestCreateForwarder(t *testing.T) {
@@ -37,42 +38,42 @@ func TestPush(t *testing.T) {
 	scenarios := []struct {
 		name     string
 		mock     lambdaiface.LambdaAPI
-		message  string
+		message  amqp.Delivery
 		function string
 		err      error
 	}{
 		{
 			name:     "empty message",
-			mock:     mockAmazonLambda{resp: lambda.InvokeOutput{StatusCode: aws.Int64(202)}, function: functionName, message: ""},
-			message:  "",
+			mock:     mockAmazonLambda{resp: lambda.InvokeOutput{StatusCode: aws.Int64(202)}, function: functionName, message: amqp.Delivery{}},
+			message:  amqp.Delivery{},
 			function: functionName,
 			err:      errors.New(forwarder.EmptyMessageError),
 		},
 		{
 			name:     "bad request",
-			mock:     mockAmazonLambda{resp: lambda.InvokeOutput{StatusCode: aws.Int64(202)}, function: functionName, message: badRequest},
-			message:  badRequest,
+			mock:     mockAmazonLambda{resp: lambda.InvokeOutput{StatusCode: aws.Int64(202)}, function: functionName, message: amqp.Delivery{Body: []byte(badRequest)}},
+			message:  amqp.Delivery{Body: []byte(badRequest)},
 			function: functionName,
 			err:      errors.New(badRequest),
 		},
 		{
 			name:     "handled error",
-			mock:     mockAmazonLambda{resp: lambda.InvokeOutput{StatusCode: aws.Int64(202), FunctionError: aws.String(handlerError)}, function: functionName, message: handlerError},
-			message:  handlerError,
+			mock:     mockAmazonLambda{resp: lambda.InvokeOutput{StatusCode: aws.Int64(202), FunctionError: aws.String(handlerError)}, function: functionName, message: amqp.Delivery{Body: []byte(handlerError)}},
+			message:  amqp.Delivery{Body: []byte(handlerError)},
 			function: functionName,
 			err:      errors.New(handlerError),
 		},
 		{
 			name:     "unhandled error",
-			mock:     mockAmazonLambda{resp: lambda.InvokeOutput{StatusCode: aws.Int64(202), FunctionError: aws.String(unhandledError)}, function: functionName, message: unhandledError},
-			message:  unhandledError,
+			mock:     mockAmazonLambda{resp: lambda.InvokeOutput{StatusCode: aws.Int64(202), FunctionError: aws.String(unhandledError)}, function: functionName, message: amqp.Delivery{Body: []byte(unhandledError)}},
+			message:  amqp.Delivery{Body: []byte(unhandledError)},
 			function: functionName,
 			err:      errors.New(unhandledError),
 		},
 		{
 			name:     "success",
-			mock:     mockAmazonLambda{resp: lambda.InvokeOutput{StatusCode: aws.Int64(202)}, function: functionName, message: "abc"},
-			message:  "abc",
+			mock:     mockAmazonLambda{resp: lambda.InvokeOutput{StatusCode: aws.Int64(202)}, function: functionName, message: amqp.Delivery{Body: []byte("ABC")}},
+			message:  amqp.Delivery{Body: []byte("ABC")},
 			function: functionName,
 			err:      nil,
 		},
@@ -102,15 +103,15 @@ type mockAmazonLambda struct {
 	lambdaiface.LambdaAPI
 	resp     lambda.InvokeOutput
 	function string
-	message  string
+	message  amqp.Delivery
 }
 
 func (m mockAmazonLambda) Invoke(input *lambda.InvokeInput) (*lambda.InvokeOutput, error) {
 	if *input.FunctionName != m.function {
-		return nil, errors.New("Wrong function name")
+		return nil, errors.New("wrong function name")
 	}
-	if string(input.Payload) != m.message {
-		return nil, errors.New("Wrong message body")
+	if string(input.Payload) != string(m.message.Body) {
+		return nil, errors.New("wrong message body")
 	}
 	if string(input.Payload) == badRequest {
 		return nil, errors.New(badRequest)

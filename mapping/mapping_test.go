@@ -2,6 +2,7 @@ package mapping
 
 import (
 	"errors"
+	"github.com/streadway/amqp"
 	"os"
 	"testing"
 
@@ -151,7 +152,7 @@ func (f MockSNSForwarder) Name() string {
 	return f.name
 }
 
-func (f MockSNSForwarder) Push(message string) error {
+func (f MockSNSForwarder) Push(message amqp.Delivery) error {
 	return nil
 }
 
@@ -159,7 +160,7 @@ func (f MockSQSForwarder) Name() string {
 	return f.name
 }
 
-func (f MockLambdaForwarder) Push(message string) error {
+func (f MockLambdaForwarder) Push(message amqp.Delivery) error {
 	return nil
 }
 
@@ -167,7 +168,7 @@ func (f MockLambdaForwarder) Name() string {
 	return f.name
 }
 
-func (f MockSQSForwarder) Push(message string) error {
+func (f MockSQSForwarder) Push(message amqp.Delivery) error {
 	return nil
 }
 
@@ -175,6 +176,6 @@ func (f ErrorForwarder) Name() string {
 	return "error-forwarder"
 }
 
-func (f ErrorForwarder) Push(message string) error {
+func (f ErrorForwarder) Push(message amqp.Delivery) error {
 	return errors.New("Wrong forwader created")
 }

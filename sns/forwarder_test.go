@@ -2,6 +2,7 @@ package sns
 
 import (
 	"errors"
+	"github.com/streadway/amqp"
 	"testing"
 
 	"github.com/AirHelp/rabbit-amazon-forwarder/config"
@@ -11,7 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/sns/snsiface"
 )
 
-var badRequest = "Bad request"
+var badRequest = "bad request"
 
 func TestCreateForwarder(t *testing.T) {
 	entry := config.AmazonEntry{Type: "SNS",
@@ -33,28 +34,28 @@ func TestPush(t *testing.T) {
 	scenarios := []struct {
 		name    string
 		mock    snsiface.SNSAPI
-		message string
+		message amqp.Delivery
 		topic   string
 		err     error
 	}{
 		{
 			name:    "empty message",
-			mock:    mockAmazonSNS{resp: sns.PublishOutput{MessageId: aws.String("messageId")}, topic: topicName, message: ""},
-			message: "",
+			mock:    mockAmazonSNS{resp: sns.PublishOutput{MessageId: aws.String("messageId")}, topic: topicName, message: amqp.Delivery{}},
+			message: amqp.Delivery{},
 			topic:   topicName,
 			err:     errors.New(forwarder.EmptyMessageError),
 		},
 		{
 			name:    "bad request",
-			mock:    mockAmazonSNS{resp: sns.PublishOutput{MessageId: aws.String("messageId")}, topic: topicName, message: badRequest},
-			message: badRequest,
+			mock:    mockAmazonSNS{resp: sns.PublishOutput{MessageId: aws.String("messageId")}, topic: topicName, message: amqp.Delivery{Body: []byte(badRequest)}},
+			message: amqp.Delivery{Body: []byte(badRequest)},
 			topic:   topicName,
 			err:     errors.New(badRequest),
 		},
 		{
 			name:    "success",
-			mock:    mockAmazonSNS{resp: sns.PublishOutput{MessageId: aws.String("messageId")}, topic: topicName, message: "abc"},
-			message: "abc",
+			mock:    mockAmazonSNS{resp: sns.PublishOutput{MessageId: aws.String("messageId")}, topic: topicName, message: amqp.Delivery{Body: []byte("ABC")}},
+			message: amqp.Delivery{Body: []byte("ABC")},
 			topic:   topicName,
 			err:     nil,
 		},
@@ -64,14 +65,14 @@ func TestPush(t *testing.T) {
 		forwarder := CreateForwarder(entry, scenario.mock)
 		err := forwarder.Push(scenario.message)
 		if scenario.err == nil && err != nil {
-			t.Errorf("Error should not occur")
+			t.Errorf("error should not occur: %s", err.Error())
 			return
 		}
 		if scenario.err == err {
 			return
 		}
-		if err.Error() != scenario.err.Error() {
-			t.Errorf("Wrong error, expecting:%v, got:%v", scenario.err, err)
+		if err != nil && err.Error() != scenario.err.Error() {
+			t.Errorf("wrong error, expecting:%v, got:%v", scenario.err, err)
 		}
 	}
 }
@@ -80,15 +81,15 @@ type mockAmazonSNS struct {
 	snsiface.SNSAPI
 	resp    sns.PublishOutput
 	topic   string
-	message string
+	message amqp.Delivery
 }
 
 func (m mockAmazonSNS) Publish(input *sns.PublishInput) (*sns.PublishOutput, error) {
 	if *input.TargetArn != m.topic {
-		return nil, errors.New("Wrong topic name")
+		return nil, errors.New("wrong topic name")
 	}
-	if *input.Message != m.message {
-		return nil, errors.New("Wrong message body")
+	if *input.Message != string(m.message.Body) {
+		return nil, errors.New("wrong message body")
 	}
 	if *input.Message == badRequest {
 		return nil, errors.New(badRequest)

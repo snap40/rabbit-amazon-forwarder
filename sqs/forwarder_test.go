@@ -2,6 +2,7 @@ package sqs
 
 import (
 	"errors"
+	"github.com/streadway/amqp"
 	"testing"
 
 	"github.com/AirHelp/rabbit-amazon-forwarder/config"
@@ -33,28 +34,28 @@ func TestPush(t *testing.T) {
 	scenarios := []struct {
 		name    string
 		mock    sqsiface.SQSAPI
-		message string
+		message amqp.Delivery
 		queue   string
 		err     error
 	}{
 		{
 			name:    "empty message",
-			mock:    mockAmazonSQS{resp: sqs.SendMessageOutput{MessageId: aws.String("messageId")}, queue: queueName, message: ""},
-			message: "",
+			mock:    mockAmazonSQS{resp: sqs.SendMessageOutput{MessageId: aws.String("messageId")}, queue: queueName, message: amqp.Delivery{}},
+			message: amqp.Delivery{},
 			queue:   queueName,
 			err:     errors.New(forwarder.EmptyMessageError),
 		},
 		{
 			name:    "bad request",
-			mock:    mockAmazonSQS{resp: sqs.SendMessageOutput{MessageId: aws.String("messageId")}, queue: queueName, message: badRequest},
-			message: badRequest,
+			mock:    mockAmazonSQS{resp: sqs.SendMessageOutput{MessageId: aws.String("messageId")}, queue: queueName, message: amqp.Delivery{Body: []byte(badRequest)}},
+			message: amqp.Delivery{Body: []byte(badRequest)},
 			queue:   queueName,
 			err:     errors.New(badRequest),
 		},
 		{
 			name:    "success",
-			mock:    mockAmazonSQS{resp: sqs.SendMessageOutput{MessageId: aws.String("messageId")}, queue: queueName, message: "abc"},
-			message: "abc",
+			mock:    mockAmazonSQS{resp: sqs.SendMessageOutput{MessageId: aws.String("messageId")}, queue: queueName, message: amqp.Delivery{Body: []byte("ABC")}},
+			message: amqp.Delivery{Body: []byte("ABC")},
 			queue:   queueName,
 			err:     nil,
 		},
@@ -70,8 +71,8 @@ func TestPush(t *testing.T) {
 		if scenario.err == err {
 			return
 		}
-		if err.Error() != scenario.err.Error() {
-			t.Errorf("Wrong error, expecting:%v, got:%v", scenario.err, err)
+		if err != nil && err.Error() != scenario.err.Error() {
+			t.Errorf("wrong error, expecting:%v, got:%v", scenario.err, err)
 		}
 	}
 }
@@ -80,15 +81,15 @@ type mockAmazonSQS struct {
 	sqsiface.SQSAPI
 	resp    sqs.SendMessageOutput
 	queue   string
-	message string
+	message amqp.Delivery
 }
 
 func (m mockAmazonSQS) SendMessage(input *sqs.SendMessageInput) (*sqs.SendMessageOutput, error) {
 	if *input.QueueUrl != m.queue {
-		return nil, errors.New("Wrong queue name")
+		return nil, errors.New("wrong queue name")
 	}
-	if *input.MessageBody != m.message {
-		return nil, errors.New("Wrong message body")
+	if *input.MessageBody != string(m.message.Body) {
+		return nil, errors.New("wrong message body")
 	}
 	if *input.MessageBody == badRequest {
 		return nil, errors.New(badRequest)
