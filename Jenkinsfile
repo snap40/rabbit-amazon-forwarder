@@ -25,10 +25,11 @@ pipeline {
             agent {
                 docker {
                     image "golang:1.16.3-alpine3.13"
+                    args '--tmpfs /.config -u root:root'
                 }
             }
             steps {
-                sh 'go test -json ./...'
+                sh 'CGO_ENABLED=0 go test -json ./...'
             }
         }
 

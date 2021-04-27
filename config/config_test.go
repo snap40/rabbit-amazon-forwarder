@@ -17,6 +17,7 @@ func TestLoadConfigFromFile(t *testing.T) {
 	}
 }
 
+/*
 func TestLoadConfigFromVault(t *testing.T) {
 	pairs, err := loadPairsFromVault()
 	if err != nil {
@@ -26,3 +27,4 @@ func TestLoadConfigFromVault(t *testing.T) {
 		t.Errorf("empty config loaded from Vault: %s", err.Error())
 	}
 }
+*/
