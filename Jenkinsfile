@@ -14,11 +14,6 @@ pipeline {
 
     stages {
         stage("Build") {
-            agent {
-                docker {
-                    image "golang:1.16.3-alpine3.13"
-                }
-            }
             steps {
                 script {
                     def image = docker.build("${env.IMAGE_NAME}:${env.IMAGE_VERSION}", ".")
