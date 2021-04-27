@@ -36,6 +36,7 @@ pipeline {
         stage("Publish") {
             steps {
                 script {
+                    def image = docker.image("${env.IMAGE_NAME}:${env.IMAGE_VERSION}")
                     docker.withRegistry("https://${env.OPS_AWS_ACCOUNT_ID}.dkr.ecr.eu-west-1.amazonaws.com") {
                         image.push()
                     }
@@ -50,6 +51,7 @@ pipeline {
             when { buildingTag() }
             steps {
                 script {
+                    def image = docker.image("${env.IMAGE_NAME}:${env.IMAGE_VERSION}")
                     docker.withRegistry("https://${env.OPS_AWS_ACCOUNT_ID}.dkr.ecr.eu-west-1.amazonaws.com") {
                         image.push(env.TAG_NAME)
                     }
