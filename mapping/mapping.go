@@ -1,7 +1,6 @@
 package mapping
 
 import (
-	"encoding/json"
 	"io/ioutil"
 	"os"
 
@@ -16,13 +15,6 @@ import (
 	"github.com/AirHelp/rabbit-amazon-forwarder/sns"
 	"github.com/AirHelp/rabbit-amazon-forwarder/sqs"
 )
-
-type pairs []pair
-
-type pair struct {
-	Source      config.RabbitEntry `json:"source"`
-	Destination config.AmazonEntry `json:"destination"`
-}
 
 // Client mapping client
 type Client struct {
@@ -56,15 +48,13 @@ func New(helpers ...Helper) Client {
 // Load loads mappings
 func (c Client) Load() ([]ConsumerForwarderMapping, error) {
 	var consumerForwarderMapping []ConsumerForwarderMapping
-	data, err := c.loadFile()
-	if err != nil {
-		return consumerForwarderMapping, err
-	}
-	var pairsList pairs
-	if err = json.Unmarshal(data, &pairsList); err != nil {
-		return consumerForwarderMapping, err
-	}
+
 	log.Info("Loading consumer - forwarder pairs")
+	pairsList, err := config.Load()
+	if err != nil {
+		return nil, err
+	}
+
 	for _, pair := range pairsList {
 		consumer := c.helper.createConsumer(pair.Source)
 		forwarder := c.helper.createForwarder(pair.Destination)

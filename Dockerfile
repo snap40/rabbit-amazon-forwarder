@@ -1,6 +1,4 @@
-#syntax = docker/dockerfile:1.0-experimental
-
-FROM golang:1.13-alpine AS builder
+FROM golang:1.16.3-alpine3.13 AS builder
 
 RUN apk add --no-cache curl git openssh \
  && adduser -D -g '' appuser
@@ -17,9 +15,9 @@ RUN  go mod tidy \
      && go mod verify \
      && go mod vendor
 
-RUN go build -ldflags="-w -s" -o /go/src/github.com/AirHelp/rabbit-amazon-forwarder/forwarder
+RUN go build -ldflags="-w -s" -o /go/src/github.com/AirHelp/rabbit-amazon-forwarder/rabbit-amazon-forwarder
 
-FROM alpine
+FROM alpine:3.13
 
 RUN adduser -D -g '' appuser
 
@@ -27,9 +25,7 @@ WORKDIR /app
 
 RUN apk add --no-cache ca-certificates
 
-COPY --from=builder /go/src/github.com/AirHelp/rabbit-amazon-forwarder/forwarder /app/forwarder
-COPY ./config /app/config
-
+COPY --from=builder /go/src/github.com/AirHelp/rabbit-amazon-forwarder/rabbit-amazon-forwarder /app/forwarder
 USER appuser
 
 ENTRYPOINT ["/app/forwarder"]

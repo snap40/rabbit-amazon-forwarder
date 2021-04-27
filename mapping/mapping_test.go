@@ -3,7 +3,6 @@ package mapping
 import (
 	"errors"
 	"github.com/streadway/amqp"
-	"os"
 	"testing"
 
 	"github.com/AirHelp/rabbit-amazon-forwarder/config"
@@ -19,31 +18,6 @@ const (
 	rabbitType = "rabbit"
 	snsType    = "sns"
 )
-
-func TestLoad(t *testing.T) {
-	os.Setenv(config.MappingFile, "../tests/rabbit_to_sns.json")
-	client := New(MockMappingHelper{})
-	var consumerForwarderMapping []ConsumerForwarderMapping
-	var err error
-	if consumerForwarderMapping, err = client.Load(); err != nil {
-		t.Errorf("could not load mapping and start mocked rabbit->sns pair: %s", err.Error())
-	}
-	if len(consumerForwarderMapping) != 1 {
-		t.Errorf("wrong consumerForwarderMapping size, expected 1, got %d", len(consumerForwarderMapping))
-	}
-}
-
-func TestLoadFile(t *testing.T) {
-	os.Setenv(config.MappingFile, "../tests/rabbit_to_sns.json")
-	client := New()
-	data, err := client.loadFile()
-	if err != nil {
-		t.Errorf("could not load file: %s", err.Error())
-	}
-	if len(data) < 1 {
-		t.Errorf("could not load file: empty steam found")
-	}
-}
 
 func TestCreateConsumer(t *testing.T) {
 	client := New()
