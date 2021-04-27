@@ -2,8 +2,6 @@ FROM golang:1.13.0-alpine
 
 WORKDIR /go/src/github.com/AirHelp/rabbit-amazon-forwarder
 
-RUN echo "asd"
-
 RUN apk add --no-cache git gcc musl-dev
 
 COPY go.mod go.sum ./
