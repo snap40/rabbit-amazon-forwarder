@@ -48,7 +48,10 @@ func main() {
 }
 
 func createLogger() {
-	log.SetFormatter(&log.JSONFormatter{})
+	formatter := &log.JSONFormatter{}
+	formatter.FieldMap["FieldKeyMsg"] = "message"
+
+	log.SetFormatter(formatter)
 	log.SetOutput(os.Stdout)
 	log.SetLevel(log.InfoLevel)
 	if logLevel := os.Getenv(LogLevel); logLevel != "" {
