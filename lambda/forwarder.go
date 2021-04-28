@@ -10,7 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/lambda"
 	"github.com/aws/aws-sdk-go/service/lambda/lambdaiface"
-	log "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/streadway/amqp"
 )
 
@@ -27,6 +27,7 @@ type Forwarder struct {
 }
 
 var statsd = datadog.NewStatsd()
+var log = logrus.WithFields(logrus.Fields(datadog.DefaultTagsAsMap()))
 
 // CreateForwarder creates instance of forwarder
 func CreateForwarder(entry config.AmazonEntry, lambdaClient ...lambdaiface.LambdaAPI) forwarder.Client {
@@ -59,20 +60,27 @@ func (f Forwarder) Push(message amqp.Delivery) error {
 	}
 	resp, err := f.lambdaClient.Invoke(params)
 	if err != nil {
-		log.WithFields(log.Fields{
+		log.WithFields(logrus.Fields{
 			"forwarderName": f.Name(),
 			"error":         err.Error()}).Error("Could not forward message")
 		return err
 	}
 	if resp.FunctionError != nil {
-		log.WithFields(log.Fields{
+		log.WithFields(logrus.Fields{
 			"forwarderName": f.Name(),
 			"functionError": *resp.FunctionError}).Errorf("Could not forward message")
 		return errors.New(*resp.FunctionError)
 	}
-	statsd.Count("messages.sent", 1, []string{"type:lambda", fmt.Sprintf("destination:%s", f.function)}, 1)
-	log.WithFields(log.Fields{
+	statsd.Count("messages.sent", 1, f.dataDogTags(), 1)
+	log.WithFields(logrus.Fields{
 		"forwarderName": f.Name(),
 		"statusCode":    resp.StatusCode}).Debug("Forward succeeded")
 	return nil
+}
+
+func (f Forwarder) dataDogTags() []string {
+	return datadog.TagsIncludingDefaults([]string{
+		"type:lambda",
+		fmt.Sprintf("destination:%s", f.function),
+	})
 }

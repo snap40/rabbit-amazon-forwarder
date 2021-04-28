@@ -1,11 +1,12 @@
 package mapping
 
 import (
+	"github.com/AirHelp/rabbit-amazon-forwarder/datadog"
 	"io/ioutil"
 	"os"
 
 	"github.com/AirHelp/rabbit-amazon-forwarder/connector"
-	log "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 
 	"github.com/AirHelp/rabbit-amazon-forwarder/config"
 	"github.com/AirHelp/rabbit-amazon-forwarder/consumer"
@@ -15,6 +16,8 @@ import (
 	"github.com/AirHelp/rabbit-amazon-forwarder/sns"
 	"github.com/AirHelp/rabbit-amazon-forwarder/sqs"
 )
+
+var log = logrus.WithFields(logrus.Fields(datadog.DefaultTagsAsMap()))
 
 // Client mapping client
 type Client struct {
@@ -70,7 +73,7 @@ func (c Client) loadFile() ([]byte, error) {
 }
 
 func (h helperImpl) createConsumer(entry config.RabbitEntry) consumer.Client {
-	log.WithFields(log.Fields{
+	log.WithFields(logrus.Fields{
 		"consumerType": entry.Type,
 		"consumerName": entry.Name}).Info("Creating consumer")
 	switch entry.Type {
@@ -82,7 +85,7 @@ func (h helperImpl) createConsumer(entry config.RabbitEntry) consumer.Client {
 }
 
 func (h helperImpl) createForwarder(entry config.AmazonEntry) forwarder.Client {
-	log.WithFields(log.Fields{
+	log.WithFields(logrus.Fields{
 		"forwarderType": entry.Type,
 		"forwarderName": entry.Name}).Info("Creating forwarder")
 	switch entry.Type {

@@ -2,9 +2,10 @@ package main
 
 import (
 	"fmt"
+	"github.com/AirHelp/rabbit-amazon-forwarder/datadog"
 	"github.com/AirHelp/rabbit-amazon-forwarder/mapping"
 	"github.com/AirHelp/rabbit-amazon-forwarder/supervisor"
-	log "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"net/http"
 	"os"
 )
@@ -12,6 +13,8 @@ import (
 const (
 	LogLevel = "LOG_LEVEL"
 )
+
+var log = logrus.WithFields(logrus.Fields(datadog.DefaultTagsAsMap()))
 
 func getListenerAddress() string {
 	var port string
@@ -48,20 +51,20 @@ func main() {
 }
 
 func createLogger() {
-	formatter := &log.JSONFormatter{
-		FieldMap: log.FieldMap{
-			log.FieldKeyMsg: "message",
+	formatter := &logrus.JSONFormatter{
+		FieldMap: logrus.FieldMap{
+			logrus.FieldKeyMsg: "message",
 		},
 	}
 
-	log.SetFormatter(formatter)
-	log.SetOutput(os.Stdout)
-	log.SetLevel(log.InfoLevel)
+	logrus.SetFormatter(formatter)
+	logrus.SetOutput(os.Stdout)
+	logrus.SetLevel(logrus.InfoLevel)
 	if logLevel := os.Getenv(LogLevel); logLevel != "" {
-		if level, err := log.ParseLevel(logLevel); err != nil {
+		if level, err := logrus.ParseLevel(logLevel); err != nil {
 			log.Fatal(err)
 		} else {
-			log.SetLevel(level)
+			logrus.SetLevel(level)
 		}
 	}
 }

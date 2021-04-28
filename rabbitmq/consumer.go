@@ -3,9 +3,10 @@ package rabbitmq
 import (
 	"errors"
 	"fmt"
+	"github.com/AirHelp/rabbit-amazon-forwarder/datadog"
 	"time"
 
-	log "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 
 	"github.com/AirHelp/rabbit-amazon-forwarder/config"
 	"github.com/AirHelp/rabbit-amazon-forwarder/connector"
@@ -43,6 +44,8 @@ type workerParams struct {
 	ch        *amqp.Channel
 }
 
+var log = logrus.WithFields(logrus.Fields(datadog.DefaultTagsAsMap()))
+
 // CreateConsumer creates consumer from string map
 func CreateConsumer(entry config.RabbitEntry, rabbitConnector connector.RabbitConnector) consumer.Client {
 	// merge RoutingKey with RoutingKeys
@@ -59,7 +62,7 @@ func (c Consumer) Name() string {
 
 // Start start consuming messages from Rabbit queue
 func (c Consumer) Start(forwarder forwarder.Client, check chan bool, stop chan bool) error {
-	log.WithFields(log.Fields{
+	log.WithFields(logrus.Fields{
 		"exchangeName": c.ExchangeName,
 		"queueName":    c.QueueName}).Info("Starting connecting consumer")
 	for {
@@ -155,7 +158,7 @@ func (c Consumer) setupExchangesAndQueues(conn *amqp.Connection, ch *amqp.Channe
 
 func (c Consumer) startForwarding(params *workerParams) error {
 	forwarderName := params.forwarder.Name()
-	log.WithFields(log.Fields{
+	log.WithFields(logrus.Fields{
 		"consumerName":  c.Name(),
 		"forwarderName": forwarderName}).Info("Started forwarding messages")
 	for {
@@ -165,7 +168,7 @@ func (c Consumer) startForwarding(params *workerParams) error {
 				closeRabbitMQ(params.conn, params.ch)
 				return errors.New(channelClosedMessage)
 			}
-			log.WithFields(log.Fields{
+			log.WithFields(logrus.Fields{
 				"consumerName":     c.Name(),
 				"content_type":     d.ContentType,
 				"content_encoding": d.ContentEncoding,
@@ -175,11 +178,11 @@ func (c Consumer) startForwarding(params *workerParams) error {
 				"messageID":        d.MessageId}).Debug("Message to forward")
 			err := params.forwarder.Push(d)
 			if err != nil {
-				log.WithFields(log.Fields{
+				log.WithFields(logrus.Fields{
 					"forwarderName": forwarderName,
 					"error":         err.Error()}).Error("Could not forward message")
 				if err = d.Reject(false); err != nil {
-					log.WithFields(log.Fields{
+					log.WithFields(logrus.Fields{
 						"forwarderName": forwarderName,
 						"error":         err.Error()}).Error("Could not reject message")
 					return err
@@ -187,7 +190,7 @@ func (c Consumer) startForwarding(params *workerParams) error {
 
 			} else {
 				if err := d.Ack(true); err != nil {
-					log.WithFields(log.Fields{
+					log.WithFields(logrus.Fields{
 						"forwarderName": forwarderName,
 						"error":         err.Error(),
 						"messageID":     d.MessageId}).Error("Could not ack message")

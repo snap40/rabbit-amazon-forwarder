@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/AirHelp/rabbit-amazon-forwarder/datadog"
-	log "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/streadway/amqp"
 
 	"github.com/AirHelp/rabbit-amazon-forwarder/config"
@@ -28,6 +28,7 @@ type Forwarder struct {
 }
 
 var statsd = datadog.NewStatsd()
+var log = logrus.WithFields(logrus.Fields(datadog.DefaultTagsAsMap()))
 
 // CreateForwarder creates instance of forwarder
 func CreateForwarder(entry config.AmazonEntry, sqsClient ...sqsiface.SQSAPI) forwarder.Client {
@@ -63,14 +64,21 @@ func (f Forwarder) Push(message amqp.Delivery) error {
 	resp, err := f.sqsClient.SendMessage(params)
 
 	if err != nil {
-		log.WithFields(log.Fields{
+		log.WithFields(logrus.Fields{
 			"forwarderName": f.Name(),
 			"error":         err.Error()}).Error("Could not forward message")
 		return err
 	}
-	statsd.Count("messages.sent", 1, []string{"type:sqs", fmt.Sprintf("destination:%s", f.queue)}, 1)
-	log.WithFields(log.Fields{
+	statsd.Count("messages.sent", 1, f.dataDogTags(), 1)
+	log.WithFields(logrus.Fields{
 		"forwarderName": f.Name(),
 		"responseID":    resp.MessageId}).Debug("Forward succeeded")
 	return nil
+}
+
+func (f Forwarder) dataDogTags() []string {
+	return datadog.TagsIncludingDefaults([]string{
+		"type:sqs",
+		fmt.Sprintf("destination:%s", f.queue),
+	})
 }

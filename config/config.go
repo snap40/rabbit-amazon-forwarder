@@ -3,8 +3,9 @@ package config
 import (
 	"encoding/json"
 	"errors"
+	"github.com/AirHelp/rabbit-amazon-forwarder/datadog"
 	"github.com/mitchellh/mapstructure"
-	log "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"io/ioutil"
 	"os"
 
@@ -18,6 +19,8 @@ const (
 	CertFile    = "CERT_FILE"
 	KeyFile     = "KEY_FILE"
 )
+
+var log = logrus.WithFields(logrus.Fields(datadog.DefaultTagsAsMap()))
 
 var filePath = os.Getenv(MappingFile)
 var vaultPath = os.Getenv(VaultPath)

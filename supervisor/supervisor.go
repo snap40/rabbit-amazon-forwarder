@@ -3,11 +3,12 @@ package supervisor
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/AirHelp/rabbit-amazon-forwarder/datadog"
 	"net/http"
 	"strings"
 	"time"
 
-	log "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 
 	"github.com/AirHelp/rabbit-amazon-forwarder/mapping"
 )
@@ -32,6 +33,8 @@ type consumerChannel struct {
 	stop  chan bool
 }
 
+var log = logrus.WithFields(logrus.Fields(datadog.DefaultTagsAsMap()))
+
 // Client supervisor client
 type Client struct {
 	mappings  []mapping.ConsumerForwarderMapping
@@ -50,7 +53,7 @@ func (c *Client) Start() error {
 		channel := makeConsumerChannel(mappingEntry.Forwarder.Name())
 		c.consumers[mappingEntry.Forwarder.Name()] = channel
 		go mappingEntry.Consumer.Start(mappingEntry.Forwarder, channel.check, channel.stop)
-		log.WithFields(log.Fields{
+		log.WithFields(logrus.Fields{
 			"consumerName":  mappingEntry.Consumer.Name(),
 			"forwarderName": mappingEntry.Forwarder.Name()}).Info("Started consumer with forwarder")
 	}
