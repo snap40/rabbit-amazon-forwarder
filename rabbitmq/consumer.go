@@ -172,7 +172,7 @@ func (c Consumer) startForwarding(params *workerParams) error {
 				"exchange":         d.Exchange,
 				"routing_key":      d.RoutingKey,
 				"headers":          d.Headers,
-				"messageID":        d.MessageId}).Info("Message to forward")
+				"messageID":        d.MessageId}).Debug("Message to forward")
 			err := params.forwarder.Push(d)
 			if err != nil {
 				log.WithFields(log.Fields{
@@ -195,7 +195,7 @@ func (c Consumer) startForwarding(params *workerParams) error {
 				}
 			}
 		case <-params.check:
-			log.WithField("forwarderName", forwarderName).Info("Checking")
+			log.WithField("forwarderName", forwarderName).Debug("Checking")
 		case <-params.stop:
 			log.WithField("forwarderName", forwarderName).Info("Closing")
 			closeRabbitMQ(params.conn, params.ch)

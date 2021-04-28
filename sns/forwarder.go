@@ -83,6 +83,6 @@ func (f Forwarder) Push(d amqp.Delivery) error {
 	}
 	log.WithFields(log.Fields{
 		"forwarderName": f.Name(),
-		"responseID":    resp.MessageId}).Info("Forward succeeded")
+		"responseID":    resp.MessageId}).Debug("Forward succeeded")
 	return nil
 }
