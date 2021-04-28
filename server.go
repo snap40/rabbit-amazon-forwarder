@@ -48,8 +48,11 @@ func main() {
 }
 
 func createLogger() {
-	formatter := &log.JSONFormatter{}
-	formatter.FieldMap["FieldKeyMsg"] = "message"
+	formatter := &log.JSONFormatter{
+		FieldMap: log.FieldMap{
+			log.FieldKeyMsg: "message",
+		},
+	}
 
 	log.SetFormatter(formatter)
 	log.SetOutput(os.Stdout)
