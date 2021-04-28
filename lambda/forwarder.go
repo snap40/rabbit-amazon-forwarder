@@ -2,7 +2,9 @@ package lambda
 
 import (
 	"errors"
+	"fmt"
 	"github.com/AirHelp/rabbit-amazon-forwarder/config"
+	"github.com/AirHelp/rabbit-amazon-forwarder/datadog"
 	"github.com/AirHelp/rabbit-amazon-forwarder/forwarder"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -23,6 +25,8 @@ type Forwarder struct {
 	lambdaClient lambdaiface.LambdaAPI
 	function     string
 }
+
+var statsd = datadog.NewStatsd()
 
 // CreateForwarder creates instance of forwarder
 func CreateForwarder(entry config.AmazonEntry, lambdaClient ...lambdaiface.LambdaAPI) forwarder.Client {
@@ -66,6 +70,7 @@ func (f Forwarder) Push(message amqp.Delivery) error {
 			"functionError": *resp.FunctionError}).Errorf("Could not forward message")
 		return errors.New(*resp.FunctionError)
 	}
+	statsd.Count("message.sent", 1, []string{"type:lambda", fmt.Sprintf("target:%s", f.function)}, 1)
 	log.WithFields(log.Fields{
 		"forwarderName": f.Name(),
 		"statusCode":    resp.StatusCode}).Debug("Forward succeeded")

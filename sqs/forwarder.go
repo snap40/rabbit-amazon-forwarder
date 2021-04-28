@@ -2,6 +2,8 @@ package sqs
 
 import (
 	"errors"
+	"fmt"
+	"github.com/AirHelp/rabbit-amazon-forwarder/datadog"
 	log "github.com/sirupsen/logrus"
 	"github.com/streadway/amqp"
 
@@ -24,6 +26,8 @@ type Forwarder struct {
 	sqsClient sqsiface.SQSAPI
 	queue     string
 }
+
+var statsd = datadog.NewStatsd()
 
 // CreateForwarder creates instance of forwarder
 func CreateForwarder(entry config.AmazonEntry, sqsClient ...sqsiface.SQSAPI) forwarder.Client {
@@ -64,6 +68,7 @@ func (f Forwarder) Push(message amqp.Delivery) error {
 			"error":         err.Error()}).Error("Could not forward message")
 		return err
 	}
+	statsd.Count("message.sent", 1, []string{"type:sqs", fmt.Sprintf("target:%s", f.queue)}, 1)
 	log.WithFields(log.Fields{
 		"forwarderName": f.Name(),
 		"responseID":    resp.MessageId}).Debug("Forward succeeded")

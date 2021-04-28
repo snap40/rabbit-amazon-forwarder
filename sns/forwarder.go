@@ -3,6 +3,7 @@ package sns
 import (
 	"errors"
 	"fmt"
+	"github.com/AirHelp/rabbit-amazon-forwarder/datadog"
 	log "github.com/sirupsen/logrus"
 	"github.com/streadway/amqp"
 
@@ -25,6 +26,8 @@ type Forwarder struct {
 	snsClient snsiface.SNSAPI
 	topic     string
 }
+
+var statsd = datadog.NewStatsd()
 
 // CreateForwarder creates instance of forwarder
 func CreateForwarder(entry config.AmazonEntry, snsClient ...snsiface.SNSAPI) forwarder.Client {
@@ -81,6 +84,7 @@ func (f Forwarder) Push(d amqp.Delivery) error {
 			"error":         err.Error()}).Error("Could not forward message")
 		return err
 	}
+	statsd.Count("message.sent", 1, []string{"type:sns", fmt.Sprintf("target:%s", f.topic)}, 1)
 	log.WithFields(log.Fields{
 		"forwarderName": f.Name(),
 		"responseID":    resp.MessageId}).Debug("Forward succeeded")
