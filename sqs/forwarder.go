@@ -68,7 +68,7 @@ func (f Forwarder) Push(message amqp.Delivery) error {
 			"error":         err.Error()}).Error("Could not forward message")
 		return err
 	}
-	statsd.Count("message.sent", 1, []string{"type:sqs", fmt.Sprintf("target:%s", f.queue)}, 1)
+	statsd.Count("messages.sent", 1, []string{"type:sqs", fmt.Sprintf("destination:%s", f.queue)}, 1)
 	log.WithFields(log.Fields{
 		"forwarderName": f.Name(),
 		"responseID":    resp.MessageId}).Debug("Forward succeeded")
