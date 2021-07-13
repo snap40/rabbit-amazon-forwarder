@@ -8,8 +8,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/AirHelp/rabbit-amazon-forwarder/forwarder"
-	"github.com/AirHelp/rabbit-amazon-forwarder/mapping"
+	"github.com/snap40/rmq-aws-forwarder/forwarder"
+	"github.com/snap40/rmq-aws-forwarder/mapping"
 )
 
 func TestStart(t *testing.T) {

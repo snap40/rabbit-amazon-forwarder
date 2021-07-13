@@ -1,6 +1,6 @@
 FROM golang:1.13.0-alpine
 
-WORKDIR /go/src/github.com/AirHelp/rabbit-amazon-forwarder
+WORKDIR /go/src/github.com/snap40/rmq-aws-forwarder
 
 RUN apk add --no-cache git gcc musl-dev
 

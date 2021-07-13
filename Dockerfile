@@ -3,8 +3,8 @@ FROM golang:1.16.3-alpine3.13 AS builder
 RUN apk add --no-cache curl git openssh \
  && adduser -D -g '' appuser
 
-COPY . /go/src/github.com/AirHelp/rabbit-amazon-forwarder
-WORKDIR /go/src/github.com/AirHelp/rabbit-amazon-forwarder
+COPY . /go/src/github.com/snap40/rmq-aws-forwarder
+WORKDIR /go/src/github.com/snap40/rmq-aws-forwarder
 
 ENV GO111MODULE=on
 ENV GOOS=linux
@@ -15,7 +15,7 @@ RUN  go mod tidy \
      && go mod verify \
      && go mod vendor
 
-RUN go build -ldflags="-w -s" -o /go/src/github.com/AirHelp/rabbit-amazon-forwarder/rabbit-amazon-forwarder
+RUN go build -ldflags="-w -s" -o /go/src/github.com/snap40/rmq-aws-forwarder/rabbit-amazon-forwarder
 
 FROM alpine:3.13
 
@@ -25,7 +25,7 @@ WORKDIR /app
 
 RUN apk add --no-cache ca-certificates
 
-COPY --from=builder /go/src/github.com/AirHelp/rabbit-amazon-forwarder/rabbit-amazon-forwarder /app/forwarder
+COPY --from=builder /go/src/github.com/snap40/rmq-aws-forwarder/rabbit-amazon-forwarder /app/forwarder
 USER appuser
 
 ENTRYPOINT ["/app/forwarder"]

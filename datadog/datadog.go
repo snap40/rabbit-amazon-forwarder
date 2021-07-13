@@ -2,9 +2,9 @@ package datadog
 
 import (
 	"fmt"
-	"github.com/AirHelp/rabbit-amazon-forwarder/utils"
 	"github.com/DataDog/datadog-go/statsd"
 	log "github.com/sirupsen/logrus"
+	"github.com/snap40/rmq-aws-forwarder/utils"
 	"strings"
 	"sync"
 )

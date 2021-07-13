@@ -1,4 +1,4 @@
-module github.com/AirHelp/rabbit-amazon-forwarder
+module github.com/snap40/rmq-aws-forwarder
 
 go 1.13
 

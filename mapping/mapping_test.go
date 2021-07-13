@@ -5,13 +5,13 @@ import (
 	"github.com/streadway/amqp"
 	"testing"
 
-	"github.com/AirHelp/rabbit-amazon-forwarder/config"
-	"github.com/AirHelp/rabbit-amazon-forwarder/consumer"
-	"github.com/AirHelp/rabbit-amazon-forwarder/forwarder"
-	"github.com/AirHelp/rabbit-amazon-forwarder/lambda"
-	"github.com/AirHelp/rabbit-amazon-forwarder/rabbitmq"
-	"github.com/AirHelp/rabbit-amazon-forwarder/sns"
-	"github.com/AirHelp/rabbit-amazon-forwarder/sqs"
+	"github.com/snap40/rmq-aws-forwarder/config"
+	"github.com/snap40/rmq-aws-forwarder/consumer"
+	"github.com/snap40/rmq-aws-forwarder/forwarder"
+	"github.com/snap40/rmq-aws-forwarder/lambda"
+	"github.com/snap40/rmq-aws-forwarder/rabbitmq"
+	"github.com/snap40/rmq-aws-forwarder/sns"
+	"github.com/snap40/rmq-aws-forwarder/sqs"
 )
 
 const (

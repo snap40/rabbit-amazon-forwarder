@@ -3,12 +3,12 @@ package sqs
 import (
 	"errors"
 	"fmt"
-	"github.com/AirHelp/rabbit-amazon-forwarder/datadog"
+	"github.com/snap40/rmq-aws-forwarder/datadog"
 	"github.com/sirupsen/logrus"
 	"github.com/streadway/amqp"
 
-	"github.com/AirHelp/rabbit-amazon-forwarder/config"
-	"github.com/AirHelp/rabbit-amazon-forwarder/forwarder"
+	"github.com/snap40/rmq-aws-forwarder/config"
+	"github.com/snap40/rmq-aws-forwarder/forwarder"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/sqs"

@@ -3,9 +3,9 @@ package config
 import (
 	"encoding/json"
 	"errors"
-	"github.com/AirHelp/rabbit-amazon-forwarder/datadog"
 	"github.com/mitchellh/mapstructure"
 	"github.com/sirupsen/logrus"
+	"github.com/snap40/rmq-aws-forwarder/datadog"
 	"io/ioutil"
 	"os"
 

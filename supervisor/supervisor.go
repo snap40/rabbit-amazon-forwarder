@@ -3,14 +3,14 @@ package supervisor
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/AirHelp/rabbit-amazon-forwarder/datadog"
+	"github.com/snap40/rmq-aws-forwarder/datadog"
 	"net/http"
 	"strings"
 	"time"
 
 	"github.com/sirupsen/logrus"
 
-	"github.com/AirHelp/rabbit-amazon-forwarder/mapping"
+	"github.com/snap40/rmq-aws-forwarder/mapping"
 )
 
 const (

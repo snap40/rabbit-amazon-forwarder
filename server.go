@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
-	"github.com/AirHelp/rabbit-amazon-forwarder/datadog"
-	"github.com/AirHelp/rabbit-amazon-forwarder/mapping"
-	"github.com/AirHelp/rabbit-amazon-forwarder/supervisor"
+	"github.com/snap40/rmq-aws-forwarder/datadog"
+	"github.com/snap40/rmq-aws-forwarder/mapping"
+	"github.com/snap40/rmq-aws-forwarder/supervisor"
 	"github.com/sirupsen/logrus"
 	"net/http"
 	"os"

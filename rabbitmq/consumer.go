@@ -3,15 +3,15 @@ package rabbitmq
 import (
 	"errors"
 	"fmt"
-	"github.com/AirHelp/rabbit-amazon-forwarder/datadog"
+	"github.com/snap40/rmq-aws-forwarder/datadog"
 	"time"
 
 	"github.com/sirupsen/logrus"
 
-	"github.com/AirHelp/rabbit-amazon-forwarder/config"
-	"github.com/AirHelp/rabbit-amazon-forwarder/connector"
-	"github.com/AirHelp/rabbit-amazon-forwarder/consumer"
-	"github.com/AirHelp/rabbit-amazon-forwarder/forwarder"
+	"github.com/snap40/rmq-aws-forwarder/config"
+	"github.com/snap40/rmq-aws-forwarder/connector"
+	"github.com/snap40/rmq-aws-forwarder/consumer"
+	"github.com/snap40/rmq-aws-forwarder/forwarder"
 	"github.com/streadway/amqp"
 )
 

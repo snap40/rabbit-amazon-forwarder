@@ -6,10 +6,10 @@ import (
 	"errors"
 	"os"
 
-	"github.com/AirHelp/rabbit-amazon-forwarder/config"
-	"github.com/AirHelp/rabbit-amazon-forwarder/connector"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/snap40/rmq-aws-forwarder/config"
+	"github.com/snap40/rmq-aws-forwarder/connector"
 	"github.com/streadway/amqp"
 )
 
