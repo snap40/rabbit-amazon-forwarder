@@ -17,8 +17,7 @@ type FileReader interface {
 	ReadFile(filename string) ([]byte, error)
 }
 
-type IOFileReader struct {
-}
+type IOFileReader struct{}
 
 func (i *IOFileReader) ReadFile(filename string) ([]byte, error) {
 	return ioutil.ReadFile(filename)
@@ -28,8 +27,7 @@ type CertPoolMaker interface {
 	NewCertPoolWithAppendedCa(caCert []byte) *x509.CertPool
 }
 
-type X509CertPoolMaker struct {
-}
+type X509CertPoolMaker struct{}
 
 func (x *X509CertPoolMaker) NewCertPoolWithAppendedCa(caCert []byte) *x509.CertPool {
 	certPool := x509.NewCertPool()
@@ -41,8 +39,7 @@ type KeyLoader interface {
 	LoadKeyPair(certFile, keyFile string) (tls.Certificate, error)
 }
 
-type X509KeyPairLoader struct {
-}
+type X509KeyPairLoader struct{}
 
 func (x *X509KeyPairLoader) LoadKeyPair(certFile string, keyFile string) (tls.Certificate, error) {
 	return tls.LoadX509KeyPair(certFile, keyFile)
@@ -52,8 +49,7 @@ type RabbitDialer interface {
 	Dial(connectionURL string) (*amqp.Connection, error)
 }
 
-type BasicRabbitDialer struct {
-}
+type BasicRabbitDialer struct{}
 
 func (s *BasicRabbitDialer) Dial(connectionURL string) (*amqp.Connection, error) {
 	return amqp.Dial(connectionURL)
@@ -63,8 +59,7 @@ type TlsRabbitDialer interface {
 	DialTLS(connectionURL string, tlsConfig *tls.Config) (*amqp.Connection, error)
 }
 
-type X509TlsDialer struct {
-}
+type X509TlsDialer struct{}
 
 func (s *X509TlsDialer) DialTLS(connectionURL string, tlsConfig *tls.Config) (*amqp.Connection, error) {
 	return amqp.DialTLS(connectionURL, tlsConfig)
@@ -100,19 +95,24 @@ func (c *TlsRabbitConnector) CreateConnection(connectionURL string) (*amqp.Conne
 	} else {
 		log.WithFields(log.Fields{
 			"error":           err.Error(),
-			config.CaCertFile: caCertFilePath}).Info("Error loading CA Cert file")
+			config.CaCertFile: caCertFilePath,
+		}).Info("Error loading CA Cert file")
 		return nil, err
 	}
 
 	certFilePath := os.Getenv(config.CertFile)
 	keyFilePath := os.Getenv(config.KeyFile)
-	if cert, err := c.KeyLoader.LoadKeyPair(certFilePath, keyFilePath); err == nil {
-		c.TlsConfig.Certificates = append(c.TlsConfig.Certificates, cert)
-	} else {
-		log.WithFields(log.Fields{
-			"error":         err.Error(),
-			config.CertFile: certFilePath,
-			config.KeyFile:  keyFilePath}).Info("Error loading client certificates")
+
+	if certFilePath != "" && keyFilePath != "" {
+		if cert, err := c.KeyLoader.LoadKeyPair(certFilePath, keyFilePath); err == nil {
+			c.TlsConfig.Certificates = append(c.TlsConfig.Certificates, cert)
+		} else {
+			log.WithFields(log.Fields{
+				"error":         err.Error(),
+				config.CertFile: certFilePath,
+				config.KeyFile:  keyFilePath,
+			}).Info("Error loading client certificates")
+		}
 	}
 	return c.TlsDialer.DialTLS(connectionURL, c.TlsConfig)
 }

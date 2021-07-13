@@ -3,11 +3,12 @@ package config
 import (
 	"encoding/json"
 	"errors"
+	"io/ioutil"
+	"os"
+
 	"github.com/AirHelp/rabbit-amazon-forwarder/datadog"
 	"github.com/mitchellh/mapstructure"
 	"github.com/sirupsen/logrus"
-	"io/ioutil"
-	"os"
 
 	vault "github.com/hashicorp/vault/api"
 )
@@ -22,10 +23,12 @@ const (
 
 var log = logrus.WithFields(logrus.Fields(datadog.DefaultTagsAsMap()))
 
-var filePath = os.Getenv(MappingFile)
-var vaultPath = os.Getenv(VaultPath)
-var token = os.Getenv("VAULT_TOKEN")
-var vaultAddr = os.Getenv("VAULT_ADDR")
+var (
+	filePath  = os.Getenv(MappingFile)
+	vaultPath = os.Getenv(VaultPath)
+	token     = os.Getenv("VAULT_TOKEN")
+	vaultAddr = os.Getenv("VAULT_ADDR")
+)
 
 // RabbitEntry RabbitMQ mapping entry
 type RabbitEntry struct {

@@ -1,4 +1,4 @@
-FROM golang:1.16.3-alpine3.13 AS builder
+FROM --platform=amd64 golang:1.16.3-alpine3.13 AS builder
 
 RUN apk add --no-cache curl git openssh \
  && adduser -D -g '' appuser
@@ -17,7 +17,7 @@ RUN  go mod tidy \
 
 RUN go build -ldflags="-w -s" -o /go/src/github.com/AirHelp/rabbit-amazon-forwarder/rabbit-amazon-forwarder
 
-FROM alpine:3.13
+FROM --platform=amd64 alpine:3.13
 
 RUN adduser -D -g '' appuser
 
@@ -26,6 +26,10 @@ WORKDIR /app
 RUN apk add --no-cache ca-certificates
 
 COPY --from=builder /go/src/github.com/AirHelp/rabbit-amazon-forwarder/rabbit-amazon-forwarder /app/forwarder
+ADD https://www.amazontrust.com/repository/SFSRootCAG2.pem /app/SFSRootCAG2.pem
+RUN chmod a+r /app/SFSRootCAG2.pem
+ENV CA_CERT_FILE=/app/SFSRootCAG2.pem
+
 USER appuser
 
 ENTRYPOINT ["/app/forwarder"]
